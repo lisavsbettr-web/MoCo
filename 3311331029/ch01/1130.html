@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Sensor Demo</title>
+
+<style>
+    body {
+        background: #0d0f15;
+        color: #fff;
+        font-family: "Roboto", sans-serif;
+        padding: 20px;
+        line-height: 1.6;
+    }
+
+    /* ====== 霓虹按鈕 ====== */
+    #startBtn {
+        padding: 12px 30px;
+        font-size: 18px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        background: #1e1f26;
+        color: #00eaff;
+        box-shadow: 0 0 10px #00eaff80, 0 0 20px #00eaff40 inset;
+        transition: 0.25s;
+    }
+    #startBtn:hover {
+        background: #00eaff;
+        color: #000;
+        box-shadow: 0 0 20px #00eaff, 0 0 30px #00eaff inset;
+    }
+    #startBtn:active {
+        transform: scale(0.96);
+    }
+
+    /* ====== 卡片框 ====== */
+    .card {
+        margin-top: 25px;
+        padding: 20px;
+        border-radius: 12px;
+        background: #12141b;
+        box-shadow: 0 0 12px #00eaff40 inset;
+        border-left: 3px solid #00eaff;
+        animation: glow 2.5s infinite alternate;
+    }
+
+    @keyframes glow {
+        from { box-shadow: 0 0 6px #00eaff40 inset; }
+        to   { box-shadow: 0 0 18px #00eaff80 inset; }
+    }
+
+    /* 標題效果 */
+    h3 {
+        margin-bottom: 8px;
+        text-shadow: 0 0 8px #00eaff;
+        font-weight: 400;
+    }
+
+    /* 數值字體特效 */
+    .value {
+        font-weight: bold;
+        color: #00eaff;
+        text-shadow: 0 0 6px #00eaff;
+        animation: pulse 1.6s infinite alternate;
+    }
+
+    @keyframes pulse {
+        from { opacity: 0.8; }
+        to   { opacity: 1; transform: scale(1.05); }
+    }
+</style>
+</head>
+
+<body>
+<button id="startBtn">🚀 啟動感測器</button>
+
+<div class="card">
+    <h3>Orientation（方向角）</h3>
+    α (alpha): <span id="alpha" class="value"></span><br>
+    β (beta): <span id="beta" class="value"></span><br>
+    γ (gamma): <span id="gamma" class="value"></span>
+</div>
+
+<div class="card">
+    <h3>加速度</h3>
+    ax: <span id="ax" class="value"></span><br>
+    ay: <span id="ay" class="value"></span><br>
+    az: <span id="az" class="value"></span>
+</div>
+
+<div class="card">
+    <h3>含重力加速度</h3>
+    ax_g: <span id="ax_g" class="value"></span><br>
+    ay_g: <span id="ay_g" class="value"></span><br>
+    az_g: <span id="az_g" class="value"></span>
+</div>
+
+<div class="card">
+    <h3>旋轉速率（陀螺儀）</h3>
+    alphaRate: <span id="alphaRate" class="value"></span><br>
+    betaRate: <span id="betaRate" class="value"></span><br>
+    gammaRate: <span id="gammaRate" class="value"></span>
+</div>
+
+
+<script>
+async function requestPermissions() {
+    if (typeof DeviceMotionEvent !== "undefined" &&
+        typeof DeviceMotionEvent.requestPermission === "function") {
+
+        const motion = await DeviceMotionEvent.requestPermission();
+        const orientation = await DeviceOrientationEvent.requestPermission();
+
+        if (motion !== "granted" || orientation !== "granted") {
+            alert("未授權使用感測器");
+            return false;
+        }
+    }
+    return true;
+}
+
+document.getElementById("startBtn").addEventListener("click", async () => {
+    const ok = await requestPermissions();
+    if (!ok) return;
+
+    // Orientation
+    window.addEventListener("deviceorientation", (e) => {
+        alpha.textContent = e.alpha?.toFixed(2);
+        beta.textContent = e.beta?.toFixed(2);
+        gamma.textContent = e.gamma?.toFixed(2);
+    });
+
+    // Motion
+    window.addEventListener("devicemotion", (e) => {
+        let acc  = e.acceleration;
+        let accG = e.accelerationIncludingGravity;
+        let rot  = e.rotationRate;
+
+        ax.textContent = acc?.x?.toFixed(2);
+        ay.textContent = acc?.y?.toFixed(2);
+        az.textContent = acc?.z?.toFixed(2);
+
+        ax_g.textContent = accG?.x?.toFixed(2);
+        ay_g.textContent = accG?.y?.toFixed(2);
+        az_g.textContent = accG?.z?.toFixed(2);
+
+        alphaRate.textContent = rot?.alpha?.toFixed(2);
+        betaRate.textContent = rot?.beta?.toFixed(2);
+        gammaRate.textContent = rot?.gamma?.toFixed(2);
+    });
+});
+</script>
+</body>
+</html>
