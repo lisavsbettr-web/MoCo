@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>Geolocation Demo</title>
+  <style>
+    body {
+      font-family: Arial;
+      padding: 20px;
+      background: #f3f3f3;
+    }
+    #box {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      width: 320px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    button {
+      padding: 10px 15px;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    pre {
+      background: #eee;
+      padding: 10px;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📍 Geolocation Demo</h2>
+
+  <div id="box">
+    <p>按下按鈕後會開始定位：</p>
+    <button onclick="getLocation()">取得目前位置</button>
+    <button onclick="startWatch()">開始監看位置</button>
+    <button onclick="stopWatch()">停止監看</button>
+
+    <h3>結果：</h3>
+    <pre id="output">尚未開始定位</pre>
+  </div>
+
+  <script>
+    let watchId = null;
+
+    function print(msg) {
+      document.getElementById("output").textContent = msg;
+    }
+
+    function getLocation() {
+      if (!("geolocation" in navigator)) {
+        print("❌ 你的瀏覽器不支援 geolocation");
+        return;
+      }
+
+      print("⏳ 正在取得位置...");
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const c = position.coords;
+          print(
+            `🎉 位置取得成功\n` +
+            `緯度: ${c.latitude}\n` +
+            `經度: ${c.longitude}\n` +
+            `精度: ±${c.accuracy} 公尺\n` +
+            `海拔: ${c.altitude}\n` +
+            `方向: ${c.heading}\n` +
+            `速度: ${c.speed}`
+          );
+        },
+        error => {
+          print("❌ 取得失敗: " + errorMessage(error));
+        }
+      );
+    }
+
+    function startWatch() {
+      if (watchId !== null) {
+        print("⚠ 已經在監看位置了");
+        return;
+      }
+
+      if (!("geolocation" in navigator)) {
+        print("❌ 你的瀏覽器不支援 geolocation");
+        return;
+      }
+
+      print("⏳ 監看中... 移動手機會看到變化");
+
+      watchId = navigator.geolocation.watchPosition(
+        position => {
+          const c = position.coords;
+          print(
+            `📡 位置更新\n` +
+            `緯度: ${c.latitude}\n` +
+            `經度: ${c.longitude}\n` +
+            `精度: ±${c.accuracy} 公尺\n` +
+            `方向: ${c.heading}\n` +
+            `速度: ${c.speed}`
+          );
+        },
+        error => {
+          print("❌ 監看錯誤: " + errorMessage(error));
+        }
+      );
+    }
+
+    function stopWatch() {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        watchId = null;
+        print("🛑 已停止監看位置");
+      } else {
+        print("⚠ 沒有正在監看的位置");
+      }
+    }
+
+    function errorMessage(error) {
+      switch (error.code) {
+        case 1: return "使用者拒絕授權";
+        case 2: return "無法取得位置";
+        case 3: return "定位逾時";
+        default: return "未知錯誤";
+      }
+    }
+  </script>
+
+</body>
+</html>
